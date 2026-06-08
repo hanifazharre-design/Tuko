@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  name        String
+  categoryId  Int      @map("category_id")
+  pembicaraId Int      @map("pembicara_id")
+  location    String
+  dateEvent   DateTime @map("date_event")
+  description String   @db.Text
+  image       String?  // Tambahan field upload gambar
+  price       Int      @default(0) // Harga tiket
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  category    Category  @relation(fields: [categoryId], references: [id])
+  pembicara   pembicara @relation(fields: [pembicaraId], references: [id])
+  tickets     Ticket[]
+
+  @@map("events")
+}
+
+model Category {
+  id     Int     @id @default(autoincrement())
+  nama   String
+  events Event[]
+
+  @@map("categories")
+}
+
+model pembicara {
+  id     Int     @id @default(autoincrement())
+  name   String
+  role   String  @default("")
+  email  String
+  photo  String?
+  bio    String  @default("")
+  status String  @default("")
+  events Event[]
+
+  @@map("pembicara")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  tickets   Ticket[]
+
+  @@map("users")
+}
+
+model Ticket {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  eventId       Int      @map("event_id")
+  paymentMethod String   @map("payment_method")
+  price         Int
+  orderId       String   @unique @map("order_id")
+  status        String   @default("LUNAS")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User     @relation(fields: [userId], references: [id])
+  event         Event    @relation(fields: [eventId], references: [id])
+
+  @@map("tickets")
+}
